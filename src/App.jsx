@@ -1,7 +1,11 @@
+import Hero from "./component/Hero";
+import Navbar from "./component/Navbar";
+
 function App() {
   return (
     <>
-      <h1 className="text-green-600 text-5xl">My name is Harshit Sanas</h1>
+      <Navbar />
+      <Hero />
     </>
   );
 }
