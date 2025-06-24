@@ -196,12 +196,13 @@ const PageTab = ({
     <React.Fragment key={page.id}>
       {index > 0 && (
         <div className="relative flex items-center">
-          <div className="h-px w-8 bg-gray-300 mx-2 relative">
+          <div className="relative w-24 h-full flex items-center justify-center">
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-transparent border-t-2 border-dashed border-gray-300"></div>
             <button
               onClick={() => onAddPage(index)}
-              className="absolute -top-3 left-1/2 transform -translate-x-1/2 h-6 w-6 rounded-full flex items-center justify-center bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-700 cursor-pointer transition-colors"
+              className="absolute -top-3 left-1/2 transform -translate-x-1/2 h-6 w-6 rounded-full flex items-center justify-center border border-black bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-700 cursor-pointer transition-colors"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4 text-gray-600" />
             </button>
           </div>
         </div>
@@ -253,13 +254,14 @@ const PageTab = ({
       </div>
       {isLast && (
         <div className="relative flex items-center">
-          <div className="h-px w-10 bg-gray-300 mx-2 relative">
+          <div className="relative w-24 h-full flex items-center justify-center">
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-transparent border-t-2 border-dashed border-gray-300"></div>
             <button
               onClick={() => onAddPage(pages.length)}
-              className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 h-7 w-7 rounded-full flex items-center justify-center bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-700 cursor-pointer transition-colors"
+              className="absolute -top-3 left-1/2 transform -translate-x-1/2 h-6 w-6 rounded-full border border-black flex items-center justify-center bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-700 cursor-pointer transition-colors"
             >
-              <Plus className="h-5 w-5" />
-            </button>
+              <Plus className="h-4 w-4 text-gray-600" />
+            </button>{" "}
           </div>
         </div>
       )}
