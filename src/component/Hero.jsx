@@ -67,7 +67,6 @@ const DropdownMenuItem = ({ className = "", children, ...props }) => {
 const DropdownMenu = ({ children, open, onOpenChange }) => {
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -421,7 +420,7 @@ const PageContent = ({ pages, activePage, onClick }) => {
       <div>
         <label>
           <h2 className="text-2xl font-semibold text-gray-900">
-            {currentPage?.name || "Page"} Content
+            {currentPage?.name || "Page"}
           </h2>
         </label>
         <FormField placeholder="Enter information" />
@@ -537,20 +536,71 @@ export default function Home() {
   };
 
   const handleContextAction = (action, pageId) => {
-    if (action === "delete") {
-      const newPages = pages.filter((page) => page.id !== pageId);
-      setPages(newPages);
-      if (pageId === activePage && newPages.length > 0) {
-        setActivePage(newPages[0].id);
-      } else if (newPages.length === 0) {
-        const defaultPage = { id: "1", name: "Default" };
-        setPages([defaultPage]);
-        setActivePage(defaultPage.id);
-      }
-      return;
+    const pageIndex = pages.findIndex((page) => page.id === pageId);
+    if (pageIndex === -1) return;
+
+    switch (action) {
+      case "setFirst":
+        setPages((prevPages) => {
+          const newPages = [...prevPages];
+          const [movedPage] = newPages.splice(pageIndex, 1);
+          return [movedPage, ...newPages];
+        });
+        setActivePage(pageId);
+        break;
+
+      case "rename":
+        const newName = prompt("Enter new page name:", pages[pageIndex].name);
+        if (newName && newName.trim() !== "") {
+          setPages((prevPages) =>
+            prevPages.map((page) =>
+              page.id === pageId ? { ...page, name: newName } : page
+            )
+          );
+        }
+        break;
+
+      case "copy":
+        setPages((prevPages) => {
+          const newPages = [...prevPages];
+          const newPage = {
+            id: Date.now().toString(),
+            name: `Copy of ${pages[pageIndex].name}`,
+          };
+          newPages.splice(pageIndex + 1, 0, newPage);
+          return newPages;
+        });
+        break;
+
+      case "duplicate":
+        setPages((prevPages) => {
+          const newPages = [...prevPages];
+          const newPage = {
+            id: Date.now().toString(),
+            name: `${pages[pageIndex].name} (Duplicate)`,
+          };
+          newPages.splice(pageIndex + 1, 0, newPage);
+          return newPages;
+        });
+        break;
+
+      case "delete":
+        // Delete the page
+        const newPages = pages.filter((page) => page.id !== pageId);
+        setPages(newPages);
+        if (pageId === activePage && newPages.length > 0) {
+          setActivePage(newPages[0].id);
+        } else if (newPages.length === 0) {
+          const defaultPage = { id: "1", name: "Default" };
+          setPages([defaultPage]);
+          setActivePage(defaultPage.id);
+        }
+        break;
+
+      default:
+        break;
     }
   };
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
@@ -580,7 +630,7 @@ export default function Home() {
         )}
       </div>
 
-      <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="mt-8 p-6">
         <div className="flex flex-wrap items-center justify-center">
           {pages.map((page, index) => (
             <PageTab
@@ -605,6 +655,16 @@ export default function Home() {
           ))}
         </div>
       </div>
+      <footer className="fixed bottom-0 left-0 right-0 py-4 bg-gray-50 border-t border-gray-200">
+        <div className="max-w-4xl mx-auto px-8">
+          <div className="text-center text-sm text-gray-500">
+            <p>
+              © {new Date().getFullYear()} Form Builder. All rights reserved.
+            </p>
+            <p className="mt-1">Made with ❤️ by Your Company Name</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
