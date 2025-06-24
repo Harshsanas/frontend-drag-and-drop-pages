@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Plus,
   MoreVertical,
@@ -7,7 +7,6 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
-  GripVertical,
 } from "lucide-react";
 
 const Button = ({
@@ -40,9 +39,49 @@ const Button = ({
   );
 };
 
-const DropdownMenu = ({ children, open, onOpenChange }) => {
+const DropdownMenuTrigger = ({ children, open, onOpenChange }) => {
+  return React.cloneElement(children, {
+    className: `${children.props.className || ""} cursor-pointer`,
+    onClick: (e) => {
+      e.stopPropagation();
+      onOpenChange(!open);
+    },
+  });
+};
+
+const DropdownMenuItem = ({ className = "", children, ...props }) => {
   return (
-    <div className="relative">
+    <div
+      className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${className}`}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
+
+const DropdownMenu = ({ children, open, onOpenChange }) => {
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        onOpenChange(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open, onOpenChange]);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
       {React.Children.map(children, (child) => {
         if (child.type === DropdownMenuTrigger) {
           return React.cloneElement(child, { open, onOpenChange });
@@ -56,36 +95,45 @@ const DropdownMenu = ({ children, open, onOpenChange }) => {
   );
 };
 
-const DropdownMenuTrigger = ({ children, open, onOpenChange }) => {
-  return React.cloneElement(children, {
-    className: `${children.props.className || ""} cursor-pointer`,
-    onClick: (e) => {
-      e.stopPropagation();
-      onOpenChange(!open);
-    },
-  });
-};
-
-const DropdownMenuContent = ({ align = "start", className = "", children }) => {
+const DropdownMenuContent = ({
+  align = "start",
+  className = "",
+  children,
+  title,
+  onClose,
+}) => {
   const alignmentClasses = {
     start: "left-0",
     end: "right-0",
   };
+
   return (
     <div
       className={`absolute z-50 mt-2 w-40 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none ${alignmentClasses[align]} ${className}`}
     >
-      {children}
-    </div>
-  );
-};
-
-const DropdownMenuItem = ({ className = "", children, ...props }) => {
-  return (
-    <div
-      className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 ${className}`}
-      {...props}
-    >
+      {title && (
+        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+          <span className="text-sm font-medium text-gray-700">{title}</span>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-500"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+      )}
       {children}
     </div>
   );
@@ -133,7 +181,35 @@ const DragDropButton = ({
             <MoreVertical className="h-6 w-6 text-black-400" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuContent
+          align="end"
+          className="w-40"
+          title="Page Actions"
+          onClose={() => setDropdownOpen(false)}
+        >
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onContextAction("setFirst", page.id);
+              setDropdownOpen(false);
+            }}
+            className="cursor-pointer"
+          >
+            <svg
+              className="h-4 w-4 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+            Set as First
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
@@ -148,6 +224,29 @@ const DragDropButton = ({
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
+              onContextAction("copy", page.id);
+              setDropdownOpen(false);
+            }}
+            className="cursor-pointer"
+          >
+            <svg
+              className="h-4 w-4 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+              />
+            </svg>
+            Copy
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
               onContextAction("duplicate", page.id);
               setDropdownOpen(false);
             }}
@@ -156,6 +255,9 @@ const DragDropButton = ({
             <Copy className="h-4 w-4 mr-2" />
             Duplicate
           </DropdownMenuItem>
+
+          <hr className="border-t border-gray-200 my-1" />
+
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
@@ -172,7 +274,6 @@ const DragDropButton = ({
     </div>
   );
 };
-
 const PageTab = ({
   page,
   index,
@@ -191,7 +292,6 @@ const PageTab = ({
   onAddPage,
   isLast,
 }) => {
-
   return (
     <React.Fragment key={page.id}>
       {index > 0 && (
@@ -314,21 +414,20 @@ const PageContent = ({ pages, activePage, onClick }) => {
   const renderFormFields = () => {
     if (!currentPage) return null;
     return (
-      <>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          {currentPage.name} Content
-        </h3>
-        <FormField label="Default Field" placeholder="Enter information" />
-      </>
+      <div>
+        <label>
+          <h2 className="text-2xl font-semibold text-gray-900">
+            {currentPage?.name || "Page"} Content
+          </h2>
+        </label>
+        <FormField placeholder="Enter information" />
+      </div>
     );
   };
 
   return (
     <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-8">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">
-          {currentPage?.name || "Page"} Content
-        </h2>
         <p className="text-gray-500 text-sm mt-2">
           Page {currentIndex + 1} of {totalPages}
         </p>
