@@ -7,9 +7,9 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  GripVertical,
 } from "lucide-react";
 
-// Button Component
 const Button = ({
   variant = "default",
   size = "default",
@@ -40,7 +40,6 @@ const Button = ({
   );
 };
 
-// Dropdown Components
 const DropdownMenu = ({ children, open, onOpenChange }) => {
   return (
     <div className="relative">
@@ -92,7 +91,88 @@ const DropdownMenuItem = ({ className = "", children, ...props }) => {
   );
 };
 
-// PageTab Component
+const DragDropButton = ({
+  onDragStart,
+  onDragOver,
+  onDragEnter,
+  onDragLeave,
+  onDrop,
+  onDragEnd,
+  onContextAction,
+  page,
+}) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <div
+      className="relative flex items-center gap-2"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div
+        draggable
+        onDragStart={(e) => onDragStart(e, page.id)}
+        onDragOver={onDragOver}
+        onDragEnter={onDragEnter}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        onDragEnd={onDragEnd}
+        className="p-2 rounded-md cursor-move hover:bg-gray-50"
+      ></div>
+
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="md"
+            className={`h-10 w-10 p-0 ${
+              isHovered ? "opacity-100" : "opacity-50"
+            } transition-opacity`}
+          >
+            <MoreVertical className="h-6 w-6 text-black-400" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onContextAction("rename", page.id);
+              setDropdownOpen(false);
+            }}
+            className="cursor-pointer"
+          >
+            <Edit2 className="h-4 w-4 mr-2" />
+            Rename
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onContextAction("duplicate", page.id);
+              setDropdownOpen(false);
+            }}
+            className="cursor-pointer"
+          >
+            <Copy className="h-4 w-4 mr-2" />
+            Duplicate
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onContextAction("delete", page.id);
+              setDropdownOpen(false);
+            }}
+            className="cursor-pointer text-red-600 hover:text-red-600"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
+
 const PageTab = ({
   page,
   index,
@@ -109,50 +189,24 @@ const PageTab = ({
   onClick,
   onContextAction,
   onAddPage,
-  hoveredIndex,
-  setHoveredIndex,
   isLast,
 }) => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  const handlePrevTab = (e) => {
-    e.stopPropagation();
-    const prevIndex = index > 0 ? index - 1 : pages.length - 1;
-    onClick(pages[prevIndex].id);
-  };
-
-  const handleNextTab = (e) => {
-    e.stopPropagation();
-    const nextIndex = index < pages.length - 1 ? index + 1 : 0;
-    onClick(pages[nextIndex].id);
-  };
-
-  const isFirstTab = index === 0;
-  const isLastTab = index === pages.length - 1;
 
   return (
     <React.Fragment key={page.id}>
-      {/* Add button that appears on hover */}
-      <div
-        className="relative"
-        onMouseEnter={() => setHoveredIndex(index)}
-        onMouseLeave={() => setHoveredIndex(null)}
-      >
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`h-8 w-8 p-0 rounded-full transition-all duration-200 ${
-            hoveredIndex === index
-              ? "opacity-100 scale-100"
-              : "opacity-0 scale-75 pointer-events-none"
-          }`}
-          onClick={() => onAddPage(index)}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
+      {index > 0 && (
+        <div className="relative flex items-center">
+          <div className="h-px w-8 bg-gray-300 mx-2 relative">
+            <button
+              onClick={() => onAddPage(index)}
+              className="absolute -top-3 left-1/2 transform -translate-x-1/2 h-6 w-6 rounded-full flex items-center justify-center bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-700 cursor-pointer transition-colors"
+            >
+              <Plus className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* Page card */}
       <div
         draggable
         onDragStart={(e) => onDragStart(e, page.id)}
@@ -178,15 +232,6 @@ const PageTab = ({
           }
         `}
       >
-        <ChevronLeft
-          className={`h-4 w-4 ${
-            isFirstTab
-              ? "text-gray-300 cursor-default"
-              : "text-gray-400 hover:text-gray-600 cursor-pointer"
-          }`}
-          onClick={isFirstTab ? undefined : handlePrevTab}
-        />
-
         <span
           className={`font-medium transition-colors ${
             activePage === page.id ? "text-blue-700" : "text-gray-700"
@@ -195,89 +240,33 @@ const PageTab = ({
           {page.name}
         </span>
 
-        <ChevronRight
-          className={`h-4 w-4 ${
-            isLastTab
-              ? "text-gray-300 cursor-default"
-              : "text-gray-400 hover:text-gray-600 cursor-pointer"
-          }`}
-          onClick={isLastTab ? undefined : handleNextTab}
+        <DragDropButton
+          onDragStart={onDragStart}
+          onDragOver={(e) => onDragOver(e, index)}
+          onDragEnter={onDragEnter}
+          onDragLeave={onDragLeave}
+          onDrop={(e) => onDrop(e, index)}
+          onDragEnd={onDragEnd}
+          onContextAction={onContextAction}
+          page={page}
         />
-
-        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <MoreVertical className="h-3 w-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                onContextAction("rename", page.id);
-                setDropdownOpen(false);
-              }}
-              className="cursor-pointer"
-            >
-              <Edit2 className="h-4 w-4 mr-2" />
-              Rename
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                onContextAction("duplicate", page.id);
-                setDropdownOpen(false);
-              }}
-              className="cursor-pointer"
-            >
-              <Copy className="h-4 w-4 mr-2" />
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                onContextAction("delete", page.id);
-                setDropdownOpen(false);
-              }}
-              className="cursor-pointer text-red-600 hover:text-red-600"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
-
-      {/* Final add button if last item */}
       {isLast && (
-        <div
-          className="relative"
-          onMouseEnter={() => setHoveredIndex(pages.length)}
-          onMouseLeave={() => setHoveredIndex(null)}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`h-8 w-8 p-0 rounded-full transition-all duration-200 ${
-              hoveredIndex === pages.length
-                ? "opacity-100 scale-100"
-                : "opacity-0 scale-75 pointer-events-none"
-            }`}
-            onClick={() => onAddPage(pages.length)}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+        <div className="relative flex items-center">
+          <div className="h-px w-10 bg-gray-300 mx-2 relative">
+            <button
+              onClick={() => onAddPage(pages.length)}
+              className="absolute -top-3.5 left-1/2 transform -translate-x-1/2 h-7 w-7 rounded-full flex items-center justify-center bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-700 cursor-pointer transition-colors"
+            >
+              <Plus className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       )}
     </React.Fragment>
   );
 };
 
-// FormField Component
 const FormField = ({ label, type = "text", placeholder = "" }) => {
   return (
     <div className="mb-4">
@@ -301,7 +290,6 @@ const FormField = ({ label, type = "text", placeholder = "" }) => {
   );
 };
 
-// PageContent Component
 const PageContent = ({ pages, activePage, onClick }) => {
   const currentPage = pages.find((p) => p.id === activePage);
   const currentIndex = pages.findIndex((p) => p.id === activePage);
@@ -310,69 +298,43 @@ const PageContent = ({ pages, activePage, onClick }) => {
   const isLastPage = currentIndex === totalPages - 1;
 
   const handlePrev = () => {
-    const prevIndex = currentIndex > 0 ? currentIndex - 1 : totalPages - 1;
+    if (isFirstPage) return;
+    const prevIndex = currentIndex - 1;
     onClick(pages[prevIndex].id);
   };
 
   const handleNext = () => {
-    const nextIndex = currentIndex < totalPages - 1 ? currentIndex + 1 : 0;
+    if (isLastPage) return;
+    const nextIndex = currentIndex + 1;
     onClick(pages[nextIndex].id);
   };
 
   const renderFormFields = () => {
-    switch (currentPage?.name) {
-      case "Info":
-        return (
-          <>
-            <FormField label="Full Name" placeholder="Enter your full name" />
-            <FormField
-              label="Email"
-              type="email"
-              placeholder="Enter your email"
-            />
-          </>
-        );
-      case "Details":
-        return (
-          <>
-            <FormField label="Address" placeholder="Enter your address" />
-            <FormField
-              label="Phone"
-              type="tel"
-              placeholder="Enter your phone number"
-            />
-          </>
-        );
-      case "Other":
-        return (
-          <>
-            <FormField
-              label="About You"
-              type="textarea"
-              placeholder="Tell us about yourself"
-            />
-          </>
-        );
-      case "Ending":
-        return (
-          <>
-            <FormField
-              label="Final Comments"
-              type="textarea"
-              placeholder="Any final comments?"
-            />
-          </>
-        );
-      default:
-        return (
-          <FormField label="Default Field" placeholder="Enter information" />
-        );
-    }
+    if (!currentPage) return null;
+    return (
+      <>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {currentPage.name} Content
+        </h3>
+        <FormField label="Default Field" placeholder="Enter information" />
+      </>
+    );
   };
 
   return (
     <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-semibold text-gray-900">
+          {currentPage?.name || "Page"} Content
+        </h2>
+        <p className="text-gray-500 text-sm mt-2">
+          Page {currentIndex + 1} of {totalPages}
+        </p>
+      </div>
+
+      <div className="py-4">{renderFormFields()}</div>
+
+      <div className="flex justify-between items-center mt-8">
         <Button
           variant="ghost"
           onClick={handlePrev}
@@ -382,15 +344,6 @@ const PageContent = ({ pages, activePage, onClick }) => {
           <ChevronLeft className="h-4 w-4" />
           Previous
         </Button>
-
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-1">
-            {currentPage?.name || "Page"} Content
-          </h2>
-          <p className="text-gray-500 text-sm">
-            Page {currentIndex + 1} of {totalPages}
-          </p>
-        </div>
 
         <Button
           variant="ghost"
@@ -402,13 +355,10 @@ const PageContent = ({ pages, activePage, onClick }) => {
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
-
-      <div className="py-4">{renderFormFields()}</div>
     </div>
   );
 };
 
-// Main Component
 export default function Home() {
   const [pages, setPages] = useState([
     { id: "1", name: "Info" },
@@ -419,7 +369,6 @@ export default function Home() {
   const [activePage, setActivePage] = useState("1");
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
-  const [hoveredIndex, setHoveredIndex] = useState(null);
 
   const dragCounter = useRef(0);
 
@@ -486,21 +435,15 @@ export default function Home() {
     if (action === "delete") {
       const newPages = pages.filter((page) => page.id !== pageId);
       setPages(newPages);
-
-      // If we deleted the active page, set the first page as active
       if (pageId === activePage && newPages.length > 0) {
         setActivePage(newPages[0].id);
       } else if (newPages.length === 0) {
-        // If no pages left, create a default one
         const defaultPage = { id: "1", name: "Default" };
         setPages([defaultPage]);
         setActivePage(defaultPage.id);
       }
       return;
     }
-
-    console.log(`${action} page:`, pageId);
-    // Implement other actions (rename, duplicate) here
   };
 
   return (
@@ -512,36 +455,8 @@ export default function Home() {
               Form Builder
             </h1>
             <p className="text-gray-600">
-              Drag to reorder pages, hover to add new ones
+              Drag to reorder pages, click plus to add new ones
             </p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex flex-wrap gap-2 items-center">
-            {pages.map((page, index) => (
-              <PageTab
-                key={page.id}
-                page={page}
-                index={index}
-                pages={pages}
-                activePage={activePage}
-                draggedItem={draggedItem}
-                dragOverIndex={dragOverIndex}
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onDragEnd={handleDragEnd}
-                onClick={setActivePage}
-                onContextAction={handleContextAction}
-                onAddPage={addPage}
-                hoveredIndex={hoveredIndex}
-                setHoveredIndex={setHoveredIndex}
-                isLast={index === pages.length - 1}
-              />
-            ))}
           </div>
         </div>
 
@@ -558,6 +473,32 @@ export default function Home() {
             </p>
           </div>
         )}
+      </div>
+
+      <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex flex-wrap items-center justify-center">
+          {pages.map((page, index) => (
+            <PageTab
+              key={page.id}
+              page={page}
+              index={index}
+              pages={pages}
+              activePage={activePage}
+              draggedItem={draggedItem}
+              dragOverIndex={dragOverIndex}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onDragEnd={handleDragEnd}
+              onClick={setActivePage}
+              onContextAction={handleContextAction}
+              onAddPage={addPage}
+              isLast={index === pages.length - 1}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

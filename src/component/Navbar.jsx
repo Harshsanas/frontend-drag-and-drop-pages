@@ -1,22 +1,3 @@
-// import React from "react";
-// import { FiGithub } from "react-icons/fi";
-
-// export default function Navbar() {
-//   return (
-//     <nav className="bg-white shadow-sm py-4 px-6 flex items-center justify-between sticky top-0 z-50">
-//       <h1 className="text-xl font-bold text-gray-800">Drag-Drop-App</h1>
-//       <a
-//         href="https://github.com/yourusername/yourrepo"
-//         target="_blank"
-//         rel="noopener noreferrer"
-//         className="text-gray-600 hover:text-gray-900 transition-colors"
-//       >
-//         <FiGithub className="w-6 h-6" />
-//       </a>
-//     </nav>
-//   );
-// }
-
 import React from "react";
 import { FiGithub } from "react-icons/fi";
 
