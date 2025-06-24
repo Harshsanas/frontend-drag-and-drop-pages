@@ -18,19 +18,23 @@ const Button = ({
   ...props
 }) => {
   const baseClasses =
-    "inline-flex items-center justify-center rounded-md font-medium transition-colors";
+    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none";
   const sizeClasses = {
     sm: "h-8 px-3 text-sm",
     default: "h-10 px-4 py-2",
   };
   const variantClasses = {
-    default: "bg-gray-900 text-white hover:bg-gray-800 disabled:bg-gray-400",
-    ghost: "hover:bg-gray-100 hover:text-gray-900 disabled:text-gray-400",
+    default:
+      "bg-gray-900 text-white hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-default",
+    ghost:
+      "hover:bg-gray-100 hover:text-gray-900 disabled:text-gray-400 disabled:cursor-default disabled:hover:bg-transparent",
   };
 
   return (
     <button
-      className={`${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`}
+      className={`${baseClasses} ${sizeClasses[size]} ${
+        variantClasses[variant]
+      } ${!disabled ? "cursor-pointer" : ""} ${className}`}
       disabled={disabled}
       {...props}
     >
